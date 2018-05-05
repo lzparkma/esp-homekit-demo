@@ -19,7 +19,7 @@
  * connected to the FTDI adapter! This may fry your
  * computer and sonoff.
  *
-modified to do pulse-width-modulation (PWM) of LED
+modified to do pulse-width-modulation (PWM) of LED and GPIO14 on header
  */
 
 #include <stdio.h>
@@ -37,7 +37,6 @@ modified to do pulse-width-modulation (PWM) of LED
 #include "wifi.h"
 
 #include "button.h"
-#include "toggle.h"
 
 // The GPIO pin that is connected to the relay on the Sonoff Basic.
 const int relay_gpio = 12;
@@ -45,8 +44,8 @@ const int relay_gpio = 12;
 const int led_gpio = 13;
 // The GPIO pin that is connected to the button on the Sonoff Basic.
 const int button_gpio = 0;
-// The GPIO pin that is connected to the header on the Sonoff Basic (external switch).
-const int toggle_gpio = 14;
+// The GPIO pin that is connected to the header on the Sonoff Basic (external LED).
+const int pwm_gpio = 14;
 
 #include <pwm.h>
 // The PWM pin that is connected to the PWM daughter board.
@@ -57,7 +56,6 @@ const bool dev = true;
 float bri;
 bool on;
 uint8_t pins[1];
-//void toggle_callback(uint8_t gpio);  // as this needed
 
 void led_write(bool on) {
     gpio_write(led_gpio, on ? 0 : 1);
