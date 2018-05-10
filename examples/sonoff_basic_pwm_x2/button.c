@@ -49,7 +49,11 @@ void button_intr_callback(uint8_t gpio) {
         if ((now - button->last_press_time) * portTICK_PERIOD_MS > button->long_press_time) {
             button->callback(button->gpio_num, button_event_long_press);
         } else {
-            button->callback(button->gpio_num, button_event_single_press);
+            if ((now - button->last_press_time) * portTICK_PERIOD_MS > (button->long_press_time)/4) {
+                button->callback(button->gpio_num, button_event_medium_press);
+            } else {
+                button->callback(button->gpio_num, button_event_single_press);
+            }
         }
     }
 }

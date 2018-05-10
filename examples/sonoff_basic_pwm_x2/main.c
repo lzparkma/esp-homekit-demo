@@ -37,6 +37,7 @@ modified to do pulse-width-modulation (PWM) of LED and GPIO14 on header
 #include "wifi.h"
 
 #include "button.h"
+#include <multipwm.h>
 
 // The GPIO pin that is connected to the relay on the Sonoff Basic.
 const int relay_gpio = 12;
@@ -47,9 +48,10 @@ const int button_gpio = 0;
 // The GPIO pin that is connected to the header on the Sonoff Basic (external LED).
 const int pwm_gpio = 14;
 
-#include <pwm.h>
-// The PWM pin that is connected to the PWM daughter board.
-const int pwm_gpio = 13;
+
+
+
+
 
 const bool dev = true;
 
@@ -101,9 +103,19 @@ static void wifi_init() {
 
 void gpio_init() {
 //    gpio_enable(relay_gpio, GPIO_OUTPUT);
-    gpio_enable(toggle_gpio, GPIO_INPUT);
-    pins[0] = led_gpio;
-    pwm_init(1, pins, false);
+    
+    uint8_t    pins[] = {led_gpio, pwm_gpio};
+    
+    pwm_info_t pwm_info;
+    pwm_info.channels = 2;
+    
+    multipwm_init(&pwm_info);
+    for (uint8_t ii=0; ii<pwm_info.channels; ii++) {
+        multipwm_set_pin(&pwm_info, ii, pins[ii]);
+//        multipwm_set_duty(&pwm_info, ii, 0);
+    }
+    multipwm_set_freq(&pwm_info, 1000);
+    multipwm_set_duty_all(&pwm_info, 0);
 }
 
 
@@ -115,7 +127,7 @@ void lightSET_task(void *pvParameters) {
         printf("ON  %3d [%5d]\n", (int)bri , w);
     } else {
         printf("OFF\n");
-        pwm_set_duty(UINT16_MAX);
+        multipwm_set_duty(&pwm_info, ii, counts[ii]);
     }
     vTaskDelete(NULL);
 }
@@ -131,10 +143,8 @@ void light_init() {
     on=false;
     bri=100;
     printf("on = false  bri = 100 %%\n");
-    pwm_set_freq(1000);
-    printf("PWMpwm_set_freq = 1000 Hz  pwm_set_duty = 0 = 0%%\n");
     pwm_set_duty(UINT16_MAX);
-    pwm_start();
+    multipwm_start(&pwm_info);
     lightSET();
 }
 
@@ -174,14 +184,15 @@ void light_identify_task(void *_args) {
                     w = (UINT16_MAX - UINT16_MAX*abs(i-40)/20);
                 }
                 b = 100.0*(UINT16_MAX-w)/UINT16_MAX;
-                pwm_set_duty(w);
+                multipwm_set_duty(&pwm_info, 0, w);
+                multipwm_start(&pwm_info);
                 printf("Light_Identify: i = %2d b = %3.0f w = %5d\n",i, b, UINT16_MAX);
                 vTaskDelay(20 / portTICK_PERIOD_MS);
             }
         }
     vTaskDelay(500 / portTICK_PERIOD_MS);
     }
-    pwm_set_duty(0);
+    multipwm_stop(&pwm_info);
     lightSET();
     vTaskDelete(NULL);
 }
@@ -193,15 +204,23 @@ void light_identify(homekit_value_t _value) {
 }
 
 
-homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "Sonoff Dimmer");
+homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "Sonoff PWMx2");
 
-homekit_characteristic_t lightbulb_on = HOMEKIT_CHARACTERISTIC_(ON, false, .getter=light_on_get, .setter=light_on_set);
+homekit_characteristic_t lightbulb_on_1 = HOMEKIT_CHARACTERISTIC_(ON, false, .getter=light_on_get, .setter=light_on_set);
+homekit_characteristic_t lightbulb_on_2 = HOMEKIT_CHARACTERISTIC_(ON, false, .getter=light_on_get, .setter=light_on_set);
 
 
 void button_callback(uint8_t gpio, button_event_t event) {
     switch (event) {
         case button_event_single_press:
-            printf("Toggling lightbulb due to button at GPIO %2d\n", gpio);
+            printf("Toggling LED due to button at GPIO %2d\n", gpio);
+            lightbulb_on.value.bool_value = !lightbulb_on.value.bool_value;
+            on = lightbulb_on.value.bool_value;
+            lightSET();
+            homekit_characteristic_notify(&lightbulb_on, lightbulb_on.value);
+            break;
+        case button_event_medium_press:
+            printf("Toggling PWM due to button at GPIO %2d\n", gpio);
             lightbulb_on.value.bool_value = !lightbulb_on.value.bool_value;
             on = lightbulb_on.value.bool_value;
             lightSET();
@@ -217,15 +236,6 @@ void button_callback(uint8_t gpio, button_event_t event) {
 }
 
 
-void toggle_callback(uint8_t gpio) {
-    printf("Toggling lightbulb due to switch at GPIO %2d\n", gpio);
-    lightbulb_on.value.bool_value = !lightbulb_on.value.bool_value;
-    on = lightbulb_on.value.bool_value;
-    lightSET();
-    homekit_characteristic_notify(&lightbulb_on, lightbulb_on.value);
-}
-
-
 homekit_accessory_t *accessories[] = {
     HOMEKIT_ACCESSORY(
         .id=1,
@@ -235,7 +245,7 @@ homekit_accessory_t *accessories[] = {
             .characteristics=(homekit_characteristic_t*[]){
                 &name,
                 HOMEKIT_CHARACTERISTIC(MANUFACTURER, "iTEAD"),
-                HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "PWM Dimmer"),
+                HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "PWM x2"),
                 HOMEKIT_CHARACTERISTIC(MODEL, "Sonoff Basic"),
                 HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1.6"),
                 HOMEKIT_CHARACTERISTIC(IDENTIFY, light_identify),
@@ -243,8 +253,15 @@ homekit_accessory_t *accessories[] = {
             }),
         HOMEKIT_SERVICE(LIGHTBULB, .primary=true,
             .characteristics=(homekit_characteristic_t*[]){
-                HOMEKIT_CHARACTERISTIC(NAME, "Sonoff Dimmer"),
-                &lightbulb_on,
+                HOMEKIT_CHARACTERISTIC(NAME, "Sonoff LED"),
+                &lightbulb_on_1,
+                HOMEKIT_CHARACTERISTIC(BRIGHTNESS, 100, .getter=light_bri_get, .setter=light_bri_set),
+            NULL
+        }),
+        HOMEKIT_SERVICE(LIGHTBULB, .primary=true,
+            .characteristics=(homekit_characteristic_t*[]){
+                HOMEKIT_CHARACTERISTIC(NAME, "Sonoff PWM"),
+                &lightbulb_on_2,
                 HOMEKIT_CHARACTERISTIC(BRIGHTNESS, 100, .getter=light_bri_get, .setter=light_bri_set),
             NULL
         }),
@@ -256,8 +273,7 @@ homekit_accessory_t *accessories[] = {
 
 homekit_server_config_t config = {
     .accessories = accessories,
-    .password = "190-11-978"    //valid for release
-//    .password = "111-11-111"    //easy for testing
+    .password = "111-11-111"
 };
 
 void on_wifi_ready() {
@@ -268,10 +284,10 @@ void create_accessory_name() {
     uint8_t macaddr[6];
     sdk_wifi_get_macaddr(STATION_IF, macaddr);
     
-    int name_len = snprintf(NULL, 0, "Sonoff Dimmer %02X:%02X:%02X",
+    int name_len = snprintf(NULL, 0, "Sonoff PWM2 %02X:%02X:%02X",
             macaddr[3], macaddr[4], macaddr[5]);
     char *name_value = malloc(name_len+1);
-    snprintf(name_value, name_len+1, "Sonoff Dimmer %02X:%02X:%02X",
+    snprintf(name_value, name_len+1, "Sonoff PWM2 %02X:%02X:%02X",
             macaddr[3], macaddr[4], macaddr[5]);
     
     name.value = HOMEKIT_STRING(name_value);
@@ -286,15 +302,12 @@ void user_init(void) {
     wifi_init();                                                   //testing
     homekit_server_init(&config);                                  //testing
  */
-    wifi_config_init("Sonoff Dimmer", NULL, on_wifi_ready);        //release
+    wifi_config_init("Sonoff PWMx2", NULL, on_wifi_ready);        //release
     
     gpio_init();
     light_init();
 
     if (button_create(button_gpio, 0, 4000, button_callback)) {
         printf("Failed to initialize button\n");
-    }
-    if (toggle_create(toggle_gpio, toggle_callback)) {
-        printf("Failed to initialize toggle\n");
     }
 }

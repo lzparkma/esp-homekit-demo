@@ -2,6 +2,7 @@
 
 typedef enum {
     button_event_single_press,
+    button_event_medium_press,
     button_event_long_press,
 } button_event_t;
 
