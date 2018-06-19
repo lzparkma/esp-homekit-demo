@@ -1,0 +1,62 @@
+ESP-Open-SDK ver: 0.0.1 compiled @ May 26 2018 22:29:59
+phy ver: 273, pp ver: 8.3
+
+light_init:
+on = false  bri = 100 %
+PWMpwm_set_freq = 1000 Hz  pwm_set_duty = 0 = 0%
+mode : sta(bc:dd:c2:ed:20:10)
+add if0
+OFF
+>>> HomeKit: Starting server
+>>> HomeKit: Formatting flash at 0x7a000
+>>> HomeKit: Generated new accessory ID: A3:1C:51:49:1B:22
+>>> HomeKit: Generated new accessory key
+>>> HomeKit: Waiting for IP
+scandone
+add 0
+aid 4
+cnt
+
+connected with Matt's Network, channel 2
+dhcp client start...
+ip:10.0.0.30,mask:255.255.255.0,gw:10.0.0.1
+>>> HomeKit: Got IP, starting
+>>> HomeKit: Configuring mDNS
+>>> HomeKit: Got new client connection: 4
+>>> HomeKit: [Client 4] Pair Setup Step 1/3
+>>> HomeKit: [Client 4] Pair Setup Step 2/3
+>>> HomeKit: [Client 4] Pair Setup Step 3/3
+>>> HomeKit: Added pairing with A5838EED-6679-4CCC-A4B4-EC7D076B814C
+>>> HomeKit: Configuring mDNS
+>>> HomeKit: [Client 4] Successfully paired
+>>> HomeKit: [Client 4] Closing client connection
+>>> HomeKit: Got new client connection: 4
+>>> HomeKit: [Client 4] Pair Verify Step 1/2
+>>> HomeKit: [Client 4] Pair Verify Step 2/2
+>>> HomeKit: [Client 4] Found pairing with A5838EED-6679-4CCC-A4B4-EC7D076B814C
+>>> HomeKit: [Client 4] Verification successful, secure session established
+>>> HomeKit: [Client 4] Get Accessories
+>>> HomeKit: [Client 4] Remove Pairing
+>>> HomeKit: Removed pairing with A5838EED-6679-4CCC-A4B4-EC7D076B814C
+>>> HomeKit: Last admin pairing was removed, enabling pair setup
+>>> HomeKit: Configuring mDNS
+>>> HomeKit: [Client 4] Closing client connection
+>>> HomeKit: Got new client connection: 4
+>>> HomeKit: [Client 4] Pair Setup Step 1/3
+>>> HomeKit: [Client 4] Pair Setup Step 2/3
+>>> HomeKit: [Client 4] Pair Setup Step 3/3
+>>> HomeKit: Added pairing with A5838EED-6679-4CCC-A4B4-EC7D076B814C
+>>> HomeKit: Configuring mDNS
+>>> HomeKit: [Client 4] Successfully paired
+>>> HomeKit: [Client 4] Closing client connection
+>>> HomeKit: Got new client connection: 4
+>>> HomeKit: [Client 4] Pair Verify Step 1/2
+>>> HomeKit: [Client 4] Pair Verify Step 2/2
+>>> HomeKit: [Client 4] Found pairing with A5838EED-6679-4CCC-A4B4-EC7D076B814C
+>>> HomeKit: [Client 4] Verification successful, secure session established
+>>> HomeKit: [Client 4] Get Accessories
+>>> HomeKit: [Client 4] Remove Pairing
+>>> HomeKit: Removed pairing with A5838EED-6679-4CCC-A4B4-EC7D076B814C
+>>> HomeKit: Last admin pairing was removed, enabling pair setup
+>>> HomeKit: Configuring mDNS
+>>> HomeKit: [Client 4] Closing client connection
