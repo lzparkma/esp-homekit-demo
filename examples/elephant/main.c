@@ -185,24 +185,26 @@ homekit_characteristic_t lightbulb_on = HOMEKIT_CHARACTERISTIC_(ON, false, .gett
 void button_callback(uint8_t gpio, button_event_t event) {
     switch (event) {
         case button_event_single_press:
-            printf("Snoozing notification until morning due to button at GPIO %2d\n", gpio);
+        printf("Button at GPIO %2d: single = snoozing notification until morning\n", gpio);
             lightbulb_on.value.bool_value = !lightbulb_on.value.bool_value;
             on = lightbulb_on.value.bool_value;
             lightSET();
             homekit_characteristic_notify(&lightbulb_on, lightbulb_on.value);
             break;
             
-/*        case button_event_long_press:
-            printf("Acknoledging notification due to button at GPIO %2d\n", gpio);
-            reset_configuration();
+        case button_event_medium_press:
+            lightbulb_on.value.bool_value = !lightbulb_on.value.bool_value;
+            on = lightbulb_on.value.bool_value;
+            lightSET();
+            homekit_characteristic_notify(&lightbulb_on, lightbulb_on.value);
             break;
-*/
+
         case button_event_long_press:
-            printf("Reseting WiFi configuration!\n");
+        printf("Button at GPIO %2d: long = Reseting WiFi configuration\n", gpio);
             reset_configuration();
             break;
         default:
-            printf("Unknown button event: %d\n", event);
+        printf("Button at GPIO %2d: Unknown = %d\n", gpio, event);
     }
 }
 
@@ -224,7 +226,7 @@ homekit_accessory_t *accessories[] = {
             }),
         HOMEKIT_SERVICE(LIGHTBULB, .primary=true,
             .characteristics=(homekit_characteristic_t*[]){
-                HOMEKIT_CHARACTERISTIC(NAME, "Elephant"),
+                HOMEKIT_CHARACTERISTIC(NAME, "Little Elephant"),
                 &lightbulb_on,
                 HOMEKIT_CHARACTERISTIC(BRIGHTNESS, 100, .getter=light_bri_get, .setter=light_bri_set),
             NULL
@@ -276,7 +278,8 @@ void user_init(void) {
     gpio_init();
     light_init();
 
-    if (button_create(button_gpio, 0, 10000, button_callback)) {
+    // 9000 = 9s long press. medium press = 1/3 of long press = 9000/3 = 3s
+    if (button_create(button_gpio, 0, 9000, button_callback)) {
         printf("Failed to initialize button\n");
     }
 }

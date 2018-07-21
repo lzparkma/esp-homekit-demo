@@ -264,8 +264,8 @@ void user_init(void) {
     wifi_config_init("Sonoff Dual", NULL, on_wifi_ready);
     gpio_init();
 
-// 4000 = 4s long press. medium press = 1/4 long press = 4000/4 = 1s
-    if (button_create(button_gpio, 0, 4000, button_callback)) {
+    // 9000 = 9s long press. medium press = 1/3 of long press = 9000/3 = 3s
+    if (button_create(button_gpio, 0, 9000, button_callback)) {
         printf("Failed to initialize button\n");
     }
     
