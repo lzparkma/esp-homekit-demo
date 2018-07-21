@@ -13,6 +13,3 @@
 [submodule "components/WS2812FX"]
 	path = components/WS2812FX
 	url = https://github.com/pcsaito/WS2812FX-rtos
-[submodule "examples/homekit"]
-	path = examples/homekit
-	url = https://github.com/maximkulkin/esp-homekit/
