@@ -213,11 +213,10 @@ homekit_accessory_t *accessories[] = {
         HOMEKIT_SERVICE(ACCESSORY_INFORMATION, .characteristics=(homekit_characteristic_t*[]){
             HOMEKIT_CHARACTERISTIC(IDENTIFY, switch_identify),
             HOMEKIT_CHARACTERISTIC(MANUFACTURER, "iTEAD"),
-            HOMEKIT_CHARACTERISTIC(MODEL, "Sonoff Dual"),
+            HOMEKIT_CHARACTERISTIC(MODEL, "Sonoff Dual R2"),
             &name,
             HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "mps"),
             HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1"),
-            HOMEKIT_CHARACTERISTIC(HARDWARE_REVISION, "R2"),
             NULL
         }),
         HOMEKIT_SERVICE(SWITCH, .primary=true, .characteristics=(homekit_characteristic_t*[]){
@@ -225,7 +224,7 @@ homekit_accessory_t *accessories[] = {
             &switch_on_1,
             NULL
         }),
-        HOMEKIT_SERVICE(SWITCH, .primary=true, .characteristics=(homekit_characteristic_t*[]){
+        HOMEKIT_SERVICE(SWITCH, .characteristics=(homekit_characteristic_t*[]){
             HOMEKIT_CHARACTERISTIC(NAME, "Dual 2"),
             &switch_on_2,
             NULL
@@ -265,7 +264,7 @@ void user_init(void) {
     wifi_config_init("Sonoff Dual", NULL, on_wifi_ready);
     gpio_init();
 
-// 4000 = 4s long press => 4000/4 = 1s medium press
+// 4000 = 4s long press. medium press = 1/4 long press = 4000/4 = 1s
     if (button_create(button_gpio, 0, 4000, button_callback)) {
         printf("Failed to initialize button\n");
     }

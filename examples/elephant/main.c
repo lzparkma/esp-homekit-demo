@@ -29,7 +29,7 @@
 // The GPIO pin that is connected to the LED on NodeMCU.
 const int led_gpio = 16;
 // The GPIO pin that is connected to the button on the Elephant.
-const int button_gpio = 0;
+const int button_gpio = 4;
 
 #include <pwm.h>
 // The PWM pin that is connected to the LED of the Elephant.
@@ -215,8 +215,9 @@ homekit_accessory_t *accessories[] = {
         HOMEKIT_SERVICE(ACCESSORY_INFORMATION,
             .characteristics=(homekit_characteristic_t*[]){
                 &name,
-                HOMEKIT_CHARACTERISTIC(MANUFACTURER, "Matt"),
+                HOMEKIT_CHARACTERISTIC(MANUFACTURER, "Matt Parkinson"),
                 HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "1"),
+                HOMEKIT_CHARACTERISTIC(MODEL, "NodeMCU Elephant"),
                 HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1"),
                 HOMEKIT_CHARACTERISTIC(IDENTIFY, light_identify),
                 NULL
@@ -236,8 +237,8 @@ homekit_accessory_t *accessories[] = {
 
 homekit_server_config_t config = {
     .accessories = accessories,
-//    .password = "190-11-978"    //valid for release
-    .password = "111-11-111"    //easy for testing
+    .password = "190-11-978"    //valid for release
+//    .password = "111-11-111"    //easy for testing
 };
 
 void on_wifi_ready() {
@@ -254,9 +255,9 @@ void create_accessory_name() {
     snprintf(name_value, name_len+1, "Matt Elephant %02X:%02X:%02X",
             macaddr[3], macaddr[4], macaddr[5]);
  */
-    int name_len = snprintf(NULL, 0, "Matt's Elephant");
+    int name_len = snprintf(NULL, 0, "Matt's Little Elephant");
     char *name_value = malloc(name_len+1);
-    snprintf(name_value, name_len+1, "Matt's Elephant");
+    snprintf(name_value, name_len+1, "Matt's Little Elephant");
 
     name.value = HOMEKIT_STRING(name_value);
 }
@@ -275,7 +276,7 @@ void user_init(void) {
     gpio_init();
     light_init();
 
-    if (button_create(button_gpio, 0, 4000, button_callback)) {
+    if (button_create(button_gpio, 0, 10000, button_callback)) {
         printf("Failed to initialize button\n");
     }
 }
