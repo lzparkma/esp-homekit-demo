@@ -4,9 +4,6 @@
 [submodule "components/wolfssl"]
 	path = components/wolfssl
 	url = https://github.com/maximkulkin/esp-wolfssl
-[submodule "components/homekit"]
-	path = components/homekit
-	url = https://github.com/maximkulkin/esp-homekit
 [submodule "components/http-parser"]
 	path = components/http-parser
 	url = https://github.com/maximkulkin/esp-http-parser/
@@ -16,3 +13,6 @@
 [submodule "components/WS2812FX"]
 	path = components/WS2812FX
 	url = https://github.com/pcsaito/WS2812FX-rtos
+[submodule "examples/homekit"]
+	path = examples/homekit
+	url = https://github.com/maximkulkin/esp-homekit/
