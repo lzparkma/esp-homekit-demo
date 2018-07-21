@@ -16,18 +16,3 @@
 [submodule "components/WS2812FX"]
 	path = components/WS2812FX
 	url = https://github.com/pcsaito/WS2812FX-rtos
-[submodule "components/esp-homekit"]
-	path = components/esp-homekit
-	url = https://github.com/maximkulkin/esp-homekit/
-[submodule "components/-name"]
-	path = components/-name
-	url = https://github.com/pcsaito/WS2812FX-rtos
-[submodule "components/--name"]
-	path = components/--name
-	url = https://github.com/pcsaito/WS2812FX-rtos
-[submodule "WS2812FX"]
-	path = components/WS2812FX-rtos
-	url = https://github.com/pcsaito/WS2812FX-rtos
-[submodule "components/WS21812FX"]
-	path = components/WS21812FX
-	url = https://github.com/pcsaito/WS2812FX-rtos
