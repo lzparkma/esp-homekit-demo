@@ -28,3 +28,6 @@
 [submodule "WS2812FX"]
 	path = components/WS2812FX-rtos
 	url = https://github.com/pcsaito/WS2812FX-rtos
+[submodule "components/WS21812FX"]
+	path = components/WS21812FX
+	url = https://github.com/pcsaito/WS2812FX-rtos
