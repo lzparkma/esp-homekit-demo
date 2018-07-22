@@ -3,11 +3,13 @@
  *
  * NodeMCU
  *
- * LED at GPIO
+ * LED      at GPIO 2/D4
  * Button at GPIO
  *
  * Appears as homekit lamp with brightness
- * 0% = OFF, 100% = ON, other = pulse rate
+ 
+ * v1 0% = OFF, 100% = ON, other = intensity
+ * v2 0% = OFF, 100% = ON, other = pulse intensity
  */
 
 #include <stdio.h>
@@ -25,15 +27,14 @@
 #include "wifi.h"
 
 #include "button.h"
-
-// The GPIO pin that is connected to the LED on NodeMCU.
-const int led_gpio = 16;
-// The GPIO pin that is connected to the button on the Elephant.
-const int button_gpio = 4;
-
 #include <pwm.h>
+
+// The GPIO pin that is connected to the status LED.
+const int led_gpio = 2;     // D4
+// The GPIO pin that is connected to the button on the Elephant.
+const int button_gpio = 4;  // D2
 // The PWM pin that is connected to the LED of the Elephant.
-const int pwm_gpio = 5;
+const int pwm_gpio = 5;     // D1
 
 const bool dev = true;
 
@@ -84,6 +85,9 @@ static void wifi_init() {
 
 
 void gpio_init() {
+    gpio_enable(led_gpio, GPIO_OUTPUT);
+    led_write(false);
+    
     pins[0] = pwm_gpio;
     pwm_init(1, pins, false);
 }
@@ -92,14 +96,13 @@ void gpio_init() {
 void lightSET_task(void *pvParameters) {
     int w;
     if (on) {
-//        w = (UINT16_MAX - UINT16_MAX*bri/100);
         w = UINT16_MAX*bri/100;
         pwm_set_duty(w);
-        printf("ON  %3d [%5d]\n", (int)bri , w);
+        printf("ON  %3d %% [%5d/%5d]\n", (int)bri , w, UINT16_MAX);
     } else {
         printf("OFF\n");
         pwm_set_duty(UINT16_MAX);
-//        pwm_set_duty(0);
+        pwm_set_duty(0);
     }
     vTaskDelete(NULL);
 }
@@ -147,26 +150,40 @@ void light_bri_set(homekit_value_t value) {
 
 
 void light_identify_task(void *_args) {
-    //Identify Elephant by Pulsing LED.
-    for (int j=0; j<3; j++) {
+    // We identify the NodeMCU by Flashing an LED connected to GPIO/D.
+    for (int i=0; i<3; i++) {
         for (int j=0; j<2; j++) {
-            for (int i=0; i<=40; i++) {
-                int w;
-                float b;
-                w = (UINT16_MAX - UINT16_MAX*i/20);
-                if(i>20) {
-                    w = (UINT16_MAX - UINT16_MAX*abs(i-40)/20);
-                }
-                b = 100.0*(UINT16_MAX-w)/UINT16_MAX;
-                pwm_set_duty(w);
-                printf("Light_Identify: i = %2d b = %3.0f w = %5d\n",i, b, UINT16_MAX);
-                vTaskDelay(20 / portTICK_PERIOD_MS);
-            }
+            led_write(true);
+            printf("Light_Identify: LED i = %d\n",i);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            led_write(false);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
         }
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+        vTaskDelay(250 / portTICK_PERIOD_MS);
+    }
+    led_write(false);
+    
+    //Identify Elephant by Pulsing PWM GPIO
+    for (int j=0; j<3; j++) {
+        for (int i=0; i<=40; i++) {
+            int w;
+            float b;
+            w = UINT16_MAX*i/20;
+            if(i>20) {
+                w = UINT16_MAX*abs(i-40)/20;
+            }
+            b = 100.0*w/UINT16_MAX;
+            pwm_set_duty(w);
+            printf("Light_Identify: b = %3.0f %% w = %5d\n", b, w);
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
     pwm_set_duty(0);
     lightSET();
+
+    
+    
     vTaskDelete(NULL);
 }
 
@@ -177,7 +194,7 @@ void light_identify(homekit_value_t _value) {
 }
 
 
-homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "Elephant");
+//homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "Elephant");
 
 homekit_characteristic_t lightbulb_on = HOMEKIT_CHARACTERISTIC_(ON, false, .getter=light_on_get, .setter=light_on_set);
 
@@ -193,8 +210,9 @@ void button_callback(uint8_t gpio, button_event_t event) {
             break;
             
         case button_event_medium_press:
+        printf("Button at GPIO %2d: medium = Acknowledge notification\n", gpio);
             lightbulb_on.value.bool_value = !lightbulb_on.value.bool_value;
-            on = lightbulb_on.value.bool_value;
+            on = false;
             lightSET();
             homekit_characteristic_notify(&lightbulb_on, lightbulb_on.value);
             break;
@@ -208,6 +226,7 @@ void button_callback(uint8_t gpio, button_event_t event) {
     }
 }
 
+homekit_characteristic_t name = HOMEKIT_CHARACTERISTIC_(NAME, "Little Elephant");
 
 homekit_accessory_t *accessories[] = {
     HOMEKIT_ACCESSORY(
